@@ -1,15 +1,15 @@
-import { SolutonListProvider } from '@/contexts/WorkflowListContext';
-import { ActiveWorkflowProvider } from '@/contexts/ActiveWorkflowContext';
+import { SolutionListProvider } from '@/contexts/SolutionListContext';
+import { ActiveSolutionProvider } from '@/contexts/ActiveSolutionContext';
 import Layout from './Layout';
 
 function App() {
-    return (
-        <SolutionListProvider>
-            <ActiveWorkflowProvider>
-                <Layout />
-            </ActiveWorkflowProvider>
-        </SolutionListProvider>
-    );
+  return (
+    <SolutionListProvider>
+      <ActiveSolutionProvider>
+        <Layout />
+      </ActiveSolutionProvider>
+    </SolutionListProvider>
+  );
 }
 
 export default App;

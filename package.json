@@ -10,12 +10,26 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@pixi/react": "^7.1.2",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@turf/bbox": "^7.2.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
+    "lucide-react": "^0.475.0",
+    "mapbox-gl": "^2.15.0",
+    "pixi.js": "^8.8.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-error-boundary": "^5.0.0",
+    "react-map-gl": "^7.1.7",
+    "tailwind-merge": "^3.0.1",
+    "uuid": "^11.0.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
+    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.55.0",
