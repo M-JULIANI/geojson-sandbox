@@ -13,6 +13,9 @@
     "@pixi/react": "^7.1.2",
     "@radix-ui/react-dialog": "^1.1.6",
     "@turf/bbox": "^7.2.0",
+    "@turf/boolean-overlap": "^7.2.0",
+    "@turf/intersect": "^7.2.0",
+    "@turf/union": "^7.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -24,6 +27,7 @@
     "react-error-boundary": "^5.0.0",
     "react-map-gl": "^7.1.7",
     "tailwind-merge": "^3.0.1",
+    "turf-union": "^3.0.12",
     "uuid": "^11.0.5"
   },
   "devDependencies": {
