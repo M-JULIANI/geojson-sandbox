@@ -9,10 +9,9 @@ import { Toolbar } from './Toolbar';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export function MapView() {
-  const { solution, updateFeatures } = useActiveSolution();
+  const { solution, updateFeatures, selectedFeatureIndices, setSelectedFeatureIndices } = useActiveSolution();
   const mapRef = useRef<any>(null);
-  const [selectedFeatureIndices, setSelectedFeatureIndices] = useState<Set<number>>(new Set());
-  const [booleanOperationsAvailable, setBooleanOperationsAvailable] = useState(false);
+  const [boolOpsAvailable, setBoolOpsAvailable] = useState(false);
 
   // Calculate the bounding box of all features to set initial viewport
   const getBounds = () => {
@@ -25,6 +24,10 @@ export function MapView() {
 
   const bounds = getBounds();
 
+  useEffect(() => {
+    setBoolOpsAvailable(selectedFeatureIndices && selectedFeatureIndices.size === 2);
+  }, [selectedFeatureIndices]);
+
   // Add useEffect to handle recentering when solution changes
   useEffect(() => {
     const bounds = getBounds();
@@ -33,7 +36,7 @@ export function MapView() {
     }
     // Clear selected features when solution changes
     setSelectedFeatureIndices(new Set());
-    setBooleanOperationsAvailable(false);
+    setBoolOpsAvailable(false);
   }, [solution]);
 
   const handleClick = (event: any) => {
@@ -41,7 +44,6 @@ export function MapView() {
     if (!features?.length) {
       // Clicked empty space
       setSelectedFeatureIndices(new Set());
-      setBooleanOperationsAvailable(false);
       return;
     }
 
@@ -56,9 +58,6 @@ export function MapView() {
       } else {
         newSelection.add(clickedFeatureIndex);
       }
-
-      // Set boolean operations flag when multiple polygons are selected
-      setBooleanOperationsAvailable(newSelection.size > 1);
 
       return newSelection;
     });
@@ -88,6 +87,7 @@ export function MapView() {
       });
       console.log('Union operation ran');
     }
+    setSelectedFeatureIndices(new Set());
   };
 
   const handleIntersection = () => {
@@ -100,6 +100,7 @@ export function MapView() {
       });
       console.log('Intersection operation ran');
     }
+    setSelectedFeatureIndices(new Set());
   };
 
   const handleDelete = () => {
@@ -155,9 +156,9 @@ export function MapView() {
           />
         </Source>
       </Map>
-      {booleanOperationsAvailable && (
+      {boolOpsAvailable && (
         <Toolbar
-          booleanOperationsAvailable={booleanOperationsAvailable}
+          booleanOperationsAvailable={boolOpsAvailable}
           onUnion={handleUnion}
           onIntersection={handleIntersection}
           onDelete={handleDelete}
