@@ -1,21 +1,22 @@
-import React, { createContext, useContext, useCallback } from 'react';
+import React, { createContext, useContext, useCallback, useState } from 'react';
 import type { Solution } from '@/types/types';
 import { useSolutionList } from '@/contexts/SolutionListContext';
 import { BooleanOps } from '../../lib/geometry/booleanOps';
 import type { PolygonFeature } from '@/types/types';
+
 interface ActiveSolutionContextType {
   solution: Solution | null;
-  updateFeatures: (operation: {
-    type: 'UNION' | 'INTERSECTION';
-    targetFeatureIndices?: number[];
-    newFeatures?: GeoJSON.Feature[];
-  }) => void;
+  updateFeatures: (operation: FeatureOperation) => void;
+  selectedFeatureIndices: Set<number>;
+  setSelectedFeatureIndices: (indices: Set<number> | ((prev: Set<number>) => Set<number>)) => void;
 }
 
 const ActiveSolutionContext = createContext<ActiveSolutionContextType | undefined>(undefined);
 
 export function ActiveSolutionProvider({ children }: { children: React.ReactNode }) {
   const { solutions = [], activeSolutionId, updateSolution } = useSolutionList();
+  const [solution, setSolution] = useState<Solution | null>(null);
+  const [selectedFeatureIndices, setSelectedFeatureIndices] = useState<Set<number>>(new Set());
 
   const activeSolution =
     solutions && Array.isArray(solutions) ? solutions.find((w) => w.id === activeSolutionId) || null : null;
@@ -76,6 +77,8 @@ export function ActiveSolutionProvider({ children }: { children: React.ReactNode
       value={{
         solution: activeSolution,
         updateFeatures,
+        selectedFeatureIndices,
+        setSelectedFeatureIndices,
       }}
     >
       {children}
