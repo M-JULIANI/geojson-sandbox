@@ -1,4 +1,4 @@
-interface PolygonFeature {
+export interface PolygonFeature {
   type: 'Feature';
   properties: {
     id: string;

@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { Solution } from '@/types/solution';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import type { Solution } from '../types/types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface SolutionListContextType {
   solutions: Solution[];
   activeSolutionId: string | null;
   setActiveSolutionId: (id: string) => void;
+  updateSolution: (solutionId: string, updatedSolution: Partial<Solution>) => void;
   isLoading: boolean;
   error: Error | null;
 }
@@ -17,6 +18,12 @@ export function SolutionListProvider({ children }: { children: React.ReactNode }
   const [activeSolutionId, setActiveSolutionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  const updateSolution = useCallback((solutionId: string, updatedSolution: Partial<Solution>) => {
+    setSolutions((prevSolutions) =>
+      prevSolutions.map((solution) => (solution.id === solutionId ? { ...solution, ...updatedSolution } : solution)),
+    );
+  }, []);
 
   useEffect(() => {
     async function loadSolutions() {
@@ -52,7 +59,16 @@ export function SolutionListProvider({ children }: { children: React.ReactNode }
   }, []);
 
   return (
-    <SolutionListContext.Provider value={{ solutions, activeSolutionId, setActiveSolutionId, isLoading, error }}>
+    <SolutionListContext.Provider
+      value={{
+        solutions,
+        activeSolutionId,
+        setActiveSolutionId,
+        updateSolution,
+        isLoading,
+        error,
+      }}
+    >
       {children}
     </SolutionListContext.Provider>
   );

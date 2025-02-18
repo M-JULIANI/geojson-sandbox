@@ -5,33 +5,32 @@ import { MapView } from './components/Map';
 
 const Layout = () => {
   return (
-    <div className="min-h-screen">
-      {/* fixed nav */}
+    <div className="h-screen flex flex-col">
       <NavBar />
 
-      {/* Main content with grid */}
-      <div className="pt-24">
+      {/* Main content */}
+      <div className="flex-1 pt-24">
         {' '}
-        {/* padding-top to account for fixed nav */}
-        <div className="grid grid-cols-4 min-h-[calc(100vh-4rem)]">
-          {/* left column - 1/4 width */}
-          <div className="border-r p-0">
+        {/* pt-16 matches navbar height */}
+        <div className="grid grid-cols-6 h-full">
+          {/* left column - 1/6 width */}
+          <div className="border-r overflow-auto">
             <ErrorBoundary fallback={<div>Something went wrong loading solutions</div>}>
               <SolutionList />
             </ErrorBoundary>
           </div>
 
-          {/* middle column - 2/4 width */}
-          <div className="col-span-2 border-r">
-            <div style={{ width: '100%', height: '100%' }}>
+          {/* middle column - 4/6 width */}
+          <div className="col-span-4 border-r">
+            <div className="h-full w-full">
               <ErrorBoundary fallback={<div>Something went wrong with the map</div>}>
                 <MapView />
               </ErrorBoundary>
             </div>
           </div>
 
-          {/* right column - 1/4 width */}
-          <div>
+          {/* right column - 1/6 width */}
+          <div className="overflow-auto">
             <h2 className="text-2xl p-4">Statistics</h2>
             <p className="text-gray-400 p-4">Tools available for selected solution</p>
           </div>

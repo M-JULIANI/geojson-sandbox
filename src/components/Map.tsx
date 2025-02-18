@@ -1,16 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Map, { Layer, Source } from 'react-map-gl';
 import { useActiveSolution } from '@/contexts/ActiveSolutionContext';
 import bbox from '@turf/bbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { Toolbar } from './Toolbar';
 
 // You'll need to add your Mapbox token to your environment variables
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export function MapView() {
-  const { solution } = useActiveSolution();
+  const { solution, updateFeatures } = useActiveSolution();
   const mapRef = useRef<any>(null);
   const [selectedFeatureIndices, setSelectedFeatureIndices] = useState<Set<number>>(new Set());
+  const [booleanOperationsAvailable, setBooleanOperationsAvailable] = useState(false);
 
   // Calculate the bounding box of all features to set initial viewport
   const getBounds = () => {
@@ -29,6 +31,9 @@ export function MapView() {
     if (bounds && mapRef.current) {
       mapRef.current.fitBounds(bounds, { padding: 200, duration: 1000 });
     }
+    // Clear selected features when solution changes
+    setSelectedFeatureIndices(new Set());
+    setBooleanOperationsAvailable(false);
   }, [solution]);
 
   const handleClick = (event: any) => {
@@ -36,6 +41,7 @@ export function MapView() {
     if (!features?.length) {
       // Clicked empty space
       setSelectedFeatureIndices(new Set());
+      setBooleanOperationsAvailable(false);
       return;
     }
 
@@ -43,16 +49,17 @@ export function MapView() {
 
     setSelectedFeatureIndices((prev) => {
       const newSelection = new Set(prev);
-      if (event.originalEvent.shiftKey) {
-        if (newSelection.has(clickedFeatureIndex)) {
-          newSelection.delete(clickedFeatureIndex);
-        } else {
-          newSelection.add(clickedFeatureIndex);
-        }
+
+      // Always use multi-select behavior
+      if (newSelection.has(clickedFeatureIndex)) {
+        newSelection.delete(clickedFeatureIndex);
       } else {
-        newSelection.clear();
         newSelection.add(clickedFeatureIndex);
       }
+
+      // Set boolean operations flag when multiple polygons are selected
+      setBooleanOperationsAvailable(newSelection.size > 1);
+
       return newSelection;
     });
   };
@@ -71,53 +78,91 @@ export function MapView() {
     features: featuresWithIndex || [],
   };
 
+  const handleUnion = () => {
+    if (selectedFeatureIndices.size === 2) {
+      const features = Array.from(selectedFeatureIndices);
+      // Implement union operation
+      updateFeatures({
+        type: 'UNION',
+        targetFeatureIndices: [features[0], features[1]],
+      });
+      console.log('Union operation ran');
+    }
+  };
+
+  const handleIntersection = () => {
+    if (selectedFeatureIndices.size === 2) {
+      const features = Array.from(selectedFeatureIndices);
+      // Implement union operation
+      updateFeatures({
+        type: 'INTERSECTION',
+        targetFeatureIndices: [features[0], features[1]],
+      });
+      console.log('Intersection operation ran');
+    }
+  };
+
+  const handleDelete = () => {
+    // Implement delete operation
+    console.log('Delete operation');
+  };
+
   return (
-    <Map
-      ref={mapRef}
-      initialViewState={
-        bounds
-          ? {
-              bounds: bounds,
-              padding: 50,
-            }
-          : undefined
-      }
-      mapboxAccessToken={MAPBOX_TOKEN}
-      style={{ width: '100%', height: '100%' }}
-      mapStyle="mapbox://styles/mapbox/light-v11"
-      interactiveLayerIds={['polygons-fill']}
-      onClick={handleClick}
-    >
-      <Source type="geojson" data={geojson}>
-        {/* Fill layer */}
-        <Layer
-          id="polygons-fill"
-          type="fill"
-          paint={{
-            'fill-color': [
-              'case',
-              ['in', ['get', 'index'], ['literal', Array.from(selectedFeatureIndices)]],
-              '#00ff00',
-              '#cccccc',
-            ],
-            'fill-opacity': 0.5,
-          }}
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <Map
+        ref={mapRef}
+        initialViewState={
+          bounds
+            ? {
+                bounds: bounds,
+              }
+            : undefined
+        }
+        mapboxAccessToken={MAPBOX_TOKEN}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle="mapbox://styles/mapbox/light-v11"
+        interactiveLayerIds={['polygons-fill']}
+        onClick={handleClick}
+      >
+        <Source type="geojson" data={geojson}>
+          {/* Fill layer */}
+          <Layer
+            id="polygons-fill"
+            type="fill"
+            paint={{
+              'fill-color': [
+                'case',
+                ['in', ['get', 'index'], ['literal', Array.from(selectedFeatureIndices)]],
+                '#00ff00',
+                '#cccccc',
+              ],
+              'fill-opacity': 0.5,
+            }}
+          />
+          {/* Outline layer */}
+          <Layer
+            id="polygons-outline"
+            type="line"
+            paint={{
+              'line-color': [
+                'case',
+                ['in', ['get', 'index'], ['literal', Array.from(selectedFeatureIndices)]],
+                '#00ff00',
+                '#0000ff',
+              ],
+              'line-width': 2,
+            }}
+          />
+        </Source>
+      </Map>
+      {booleanOperationsAvailable && (
+        <Toolbar
+          booleanOperationsAvailable={booleanOperationsAvailable}
+          onUnion={handleUnion}
+          onIntersection={handleIntersection}
+          onDelete={handleDelete}
         />
-        {/* Outline layer */}
-        <Layer
-          id="polygons-outline"
-          type="line"
-          paint={{
-            'line-color': [
-              'case',
-              ['in', ['get', 'index'], ['literal', Array.from(selectedFeatureIndices)]],
-              '#00ff00',
-              '#0000ff',
-            ],
-            'line-width': 2,
-          }}
-        />
-      </Source>
-    </Map>
+      )}
+    </div>
   );
 }
