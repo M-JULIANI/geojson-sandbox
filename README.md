@@ -5,7 +5,7 @@ This repo attempts to implement the `State Management` takehome assignment.
 ### Prerequisites
 
 - You will need to have `node` and `npm` installed.
-- You will need a my .env file which contains the mapbox api key.
+- You will need a my .env file which contains the mapbox api key, should come with the zip file.
 
 ## Commands
 
@@ -55,7 +55,7 @@ updateFeatures({
 
 ### Interactions
 
-The `MapView` component serves as the main component for map interactions. We can basically select polygons (thereby updateding the selection state), which in turn triggers the `Toolbar` visibility as toolbar actions become available.
+The `MapView` component serves as the main component for map interactions. We can basically select polygons (thereby updateding the selection state), which in turn triggers the `Toolbar` visibility as toolbar actions become available. Toolbar is setup as a list of commands, all which can be passed a function for determining what 'active state' for that tool looks like.
 
 ### Map
 
