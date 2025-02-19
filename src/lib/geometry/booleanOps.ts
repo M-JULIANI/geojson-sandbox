@@ -1,5 +1,4 @@
 import { union } from '@turf/union';
-import { booleanIntersects } from '@turf/boolean-intersects';
 import { intersect } from '@turf/intersect';
 import { Feature, MultiPolygon, Polygon } from 'geojson';
 

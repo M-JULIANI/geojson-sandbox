@@ -1,8 +1,8 @@
 import NavBar from './components/NavBar';
 import { SolutionList } from './components/SolutionList';
 import { ErrorBoundary } from 'react-error-boundary';
-import { MapView } from './components/Map';
-import { Metrics } from './components/Metrics';
+import { MapView } from './components/map/Map';
+import { Metrics, MetricsContainer } from './components/metrics/Metrics';
 
 const Layout = () => {
   return (
@@ -33,7 +33,7 @@ const Layout = () => {
           {/* right column - 1/6 width */}
           <div className="overflow-auto">
             <ErrorBoundary fallback={<div>Something went wrong with metrics</div>}>
-              <Metrics />
+              <MetricsContainer />
             </ErrorBoundary>
           </div>
         </div>

@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useCallback, useState } from 'react';
 import type { Solution } from '@/types/types';
 import { useSolutionList } from '@/contexts/SolutionListContext';
-import { BooleanOps } from '../../lib/geometry/booleanOps';
 import type { PolygonFeature } from '@/types/types';
+import { runUnion, runIntersection, PolygonOperation } from '@/lib/geometry/geometryOps';
 
-interface ActiveSolutionContextType {
+export interface ActiveSolutionContextType {
   solution: Solution | null;
-  updateFeatures: (operation: FeatureOperation) => void;
+  updateFeatures: (operation: { type: PolygonOperation; targetFeatureIndices: number[] }) => void;
   selectedFeatureIndices: Set<number>;
   setSelectedFeatureIndices: (indices: Set<number> | ((prev: Set<number>) => Set<number>)) => void;
 }
@@ -15,31 +15,26 @@ const ActiveSolutionContext = createContext<ActiveSolutionContextType | undefine
 
 export function ActiveSolutionProvider({ children }: { children: React.ReactNode }) {
   const { solutions = [], activeSolutionId, updateSolution } = useSolutionList();
-  const [solution, setSolution] = useState<Solution | null>(null);
   const [selectedFeatureIndices, setSelectedFeatureIndices] = useState<Set<number>>(new Set());
 
   const activeSolution =
     solutions && Array.isArray(solutions) ? solutions.find((w) => w.id === activeSolutionId) || null : null;
 
   const updateFeatures = useCallback(
-    (operation: {
-      type: 'UNION' | 'INTERSECTION';
-      targetFeatureIndices?: number[];
-      newFeatures?: GeoJSON.Feature[];
-    }) => {
+    (operation: { type: PolygonOperation; targetFeatureIndices: number[] }) => {
       if (!activeSolution) return;
 
       const currentFeatures = activeSolution.features;
       let updatedFeatures: GeoJSON.Feature[] = [];
 
       switch (operation.type) {
-        case 'UNION':
-        case 'INTERSECTION': {
+        case PolygonOperation.UNION:
+        case PolygonOperation.INTERSECTION: {
           if (!operation.targetFeatureIndices || operation.targetFeatureIndices.length < 2) return;
 
           const targetFeatures = operation.targetFeatureIndices.map((i) => currentFeatures[i]);
           const result =
-            operation.type === 'UNION' ? BooleanOps.union(targetFeatures) : BooleanOps.intersection(targetFeatures);
+            operation.type === PolygonOperation.UNION ? runUnion(targetFeatures) : runIntersection(targetFeatures);
 
           // Remove the original features and add the result
           if (result) {
@@ -93,3 +88,5 @@ export function useActiveSolution() {
   }
   return context;
 }
+
+export { ActiveSolutionContext };

@@ -1,6 +1,6 @@
 export interface PolygonFeature {
   type: 'Feature';
-  properties: {
+  properties?: {
     id: string;
     [key: string]: any;
   };
@@ -10,7 +10,7 @@ export interface PolygonFeature {
   };
 }
 
-interface FeatureCollection {
+export interface FeatureCollection {
   type: 'FeatureCollection';
   features: PolygonFeature[];
 }

@@ -34,6 +34,7 @@ export function Toolbar({ booleanOperationsAvailable, onUnion, onIntersection }:
 
   return (
     <div
+      data-testid="toolbar"
       style={{
         position: 'absolute',
         top: '20px',
@@ -54,11 +55,13 @@ export function Toolbar({ booleanOperationsAvailable, onUnion, onIntersection }:
       {tools.map((tool) => (
         <div key={tool.id} className="group relative" title={tool.tooltip}>
           <button
+            data-testid={`toolbar-${tool.id}-button`}
             onClick={tool.action}
             disabled={!tool.isEnabled()}
             className={`p-2 rounded-md transition-colors font-medium ${
               tool.isEnabled() ? 'hover:bg-gray-100 active:bg-gray-200' : 'opacity-50 cursor-not-allowed'
             }`}
+            aria-label={tool.tooltip}
           >
             {tool.label}
           </button>
