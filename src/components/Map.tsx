@@ -4,6 +4,7 @@ import { useActiveSolution } from '@/contexts/ActiveSolutionContext';
 import bbox from '@turf/bbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Toolbar } from './Toolbar';
+import { PolygonOperation } from '@/lib/geometry/geometryOps';
 
 // You'll need to add your Mapbox token to your environment variables
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -16,10 +17,14 @@ export function MapView() {
   // Calculate the bounding box of all features to set initial viewport
   const getBounds = () => {
     if (!solution?.features?.length) return null;
-    return bbox({
+    const [minX, minY, maxX, maxY] = bbox({
       type: 'FeatureCollection',
       features: solution.features,
     });
+    return [
+      [minX, minY],
+      [maxX, maxY],
+    ] as [[number, number], [number, number]];
   };
 
   const bounds = getBounds();
@@ -82,7 +87,7 @@ export function MapView() {
       const features = Array.from(selectedFeatureIndices);
       // Implement union operation
       updateFeatures({
-        type: 'UNION',
+        type: PolygonOperation.UNION,
         targetFeatureIndices: [features[0], features[1]],
       });
       console.log('Union operation ran');
@@ -95,7 +100,7 @@ export function MapView() {
       const features = Array.from(selectedFeatureIndices);
       // Implement union operation
       updateFeatures({
-        type: 'INTERSECTION',
+        type: PolygonOperation.INTERSECTION,
         targetFeatureIndices: [features[0], features[1]],
       });
       console.log('Intersection operation ran');

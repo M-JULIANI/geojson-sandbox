@@ -1,5 +1,4 @@
 import { union } from '@turf/union';
-import { booleanIntersects } from '@turf/boolean-intersects';
 import { intersect } from '@turf/intersect';
 import { Feature, MultiPolygon, Polygon } from 'geojson';
 
@@ -42,7 +41,7 @@ export class BooleanOps {
       let result = polygons[0];
       for (let i = 1; i < polygons.length; i++) {
         const intersectResult = intersect({ type: 'FeatureCollection', features: [result, polygons[i]] });
-        if (!intersectResult) return null; // No intersection found
+        if (!intersectResult) return null;
         result = intersectResult;
       }
       return result;

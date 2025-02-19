@@ -9,9 +9,7 @@ interface ToolbarAction {
 interface MapToolbarProps {
   booleanOperationsAvailable: boolean;
   onUnion?: () => void;
-  onDifference?: () => void;
   onIntersection?: () => void;
-  onDelete?: () => void;
 }
 
 export function Toolbar({ booleanOperationsAvailable, onUnion, onIntersection }: MapToolbarProps) {

@@ -1,20 +1,7 @@
-export interface PolygonFeature {
-  type: 'Feature';
-  properties: {
-    id: string;
-    [key: string]: any;
-  };
-  geometry: {
-    type: 'Polygon';
-    coordinates: number[][][];
-  };
-}
+import type { Feature, Polygon, FeatureCollection } from 'geojson';
 
-interface FeatureCollection {
-  type: 'FeatureCollection';
-  features: PolygonFeature[];
-}
+export type PolygonFeature = Feature<Polygon, { id: string } & Record<string, any>>;
 
-export interface Solution extends FeatureCollection {
+export interface Solution extends FeatureCollection<Polygon> {
   id: string;
 }

@@ -29,18 +29,22 @@ export function SolutionListProvider({ children }: { children: React.ReactNode }
     async function loadSolutions() {
       try {
         setIsLoading(true);
-        const response1 = await fetch('../data/polygons1.json');
-        const response2 = await fetch('../data/polygons2.json');
+        const fileNumbers = [1, 2];
+        const responses = await Promise.all(
+          fileNumbers.map(async (num) => {
+            try {
+              const response = await fetch(`../data/polygons${num}.json`);
+              if (!response.ok) return null;
+              const data = await response.json();
+              return { id: uuidv4(), ...data };
+            } catch {
+              return null;
+            }
+          }),
+        );
 
-        const solution1 = await response1.json();
-        const solution2 = await response2.json();
+        const wrappedSolutions = responses.filter((solution): solution is Solution => solution !== null);
 
-        const wrappedSolutions = [
-          { id: uuidv4(), ...solution1 },
-          { id: uuidv4(), ...solution2 },
-        ];
-
-        console.log('Setting solutions:', wrappedSolutions);
         setSolutions(wrappedSolutions);
 
         if (wrappedSolutions.length > 0) {

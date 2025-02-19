@@ -1,6 +1,5 @@
 import { useSolutionList } from '@/contexts/SolutionListContext';
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandInput, CommandList } from '@/components/ui/command';
-import { PlusIcon } from 'lucide-react';
 
 export const SolutionList = () => {
   const { isLoading, solutions, setActiveSolutionId } = useSolutionList();
