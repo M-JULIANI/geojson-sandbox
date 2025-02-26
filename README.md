@@ -1,4 +1,4 @@
-# Forma Takehome
+# Geojson Sandbox
 
 This repo attempts to implement the `State Management` takehome assignment.
 
