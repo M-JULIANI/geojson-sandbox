@@ -10,7 +10,8 @@ import { PolygonOperation } from '@/lib/geometry/geometryOps';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export function MapView() {
-  const { solution, dispatch, selectedFeatureIndices, setSelectedFeatureIndices } = useActiveSolution();
+  const { solution, dispatch, selectedFeatureIndices, setSelectedFeatureIndices, canUndo, canRedo, undo, redo } =
+    useActiveSolution();
   const mapRef = useRef<any>(null);
   const [boolOpsAvailable, setBoolOpsAvailable] = useState(false);
 
@@ -158,11 +159,15 @@ export function MapView() {
           />
         </Source>
       </Map>
-      {boolOpsAvailable && (
+      {(boolOpsAvailable || canUndo || canRedo) && (
         <Toolbar
           booleanOperationsAvailable={boolOpsAvailable}
           onUnion={handleUnion}
           onIntersection={handleIntersection}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
         />
       )}
     </div>
