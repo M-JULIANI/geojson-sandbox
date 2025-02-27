@@ -10,7 +10,8 @@ import { PolygonOperation } from '@/lib/geometry/geometryOps';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export function MapView() {
-  const { solution, updateFeatures, selectedFeatureIndices, setSelectedFeatureIndices } = useActiveSolution();
+  const { solution, dispatch, selectedFeatureIndices, setSelectedFeatureIndices, canUndo, canRedo, undo, redo } =
+    useActiveSolution();
   const mapRef = useRef<any>(null);
   const [boolOpsAvailable, setBoolOpsAvailable] = useState(false);
 
@@ -30,7 +31,7 @@ export function MapView() {
   const bounds = getBounds();
 
   useEffect(() => {
-    setBoolOpsAvailable(selectedFeatureIndices && selectedFeatureIndices.size === 2);
+    setBoolOpsAvailable(selectedFeatureIndices && selectedFeatureIndices.size >= 2);
   }, [selectedFeatureIndices]);
 
   // Add useEffect to handle recentering when solution changes
@@ -83,12 +84,13 @@ export function MapView() {
   };
 
   const handleUnion = () => {
-    if (selectedFeatureIndices.size === 2) {
+    if (boolOpsAvailable) {
       const features = Array.from(selectedFeatureIndices);
       // Implement union operation
-      updateFeatures({
-        type: PolygonOperation.UNION,
-        targetFeatureIndices: [features[0], features[1]],
+      dispatch({
+        type: 'UPDATE_FEATURES',
+        operation: PolygonOperation.UNION,
+        targetFeatureIndices: [...features],
       });
       console.log('Union operation ran');
     }
@@ -96,21 +98,17 @@ export function MapView() {
   };
 
   const handleIntersection = () => {
-    if (selectedFeatureIndices.size === 2) {
+    if (boolOpsAvailable) {
       const features = Array.from(selectedFeatureIndices);
       // Implement union operation
-      updateFeatures({
-        type: PolygonOperation.INTERSECTION,
-        targetFeatureIndices: [features[0], features[1]],
+      dispatch({
+        type: 'UPDATE_FEATURES',
+        operation: PolygonOperation.INTERSECTION,
+        targetFeatureIndices: [...features],
       });
       console.log('Intersection operation ran');
     }
     setSelectedFeatureIndices(new Set());
-  };
-
-  const handleDelete = () => {
-    // Implement delete operation
-    console.log('Delete operation');
   };
 
   return (
@@ -161,12 +159,15 @@ export function MapView() {
           />
         </Source>
       </Map>
-      {boolOpsAvailable && (
+      {(boolOpsAvailable || canUndo || canRedo) && (
         <Toolbar
           booleanOperationsAvailable={boolOpsAvailable}
           onUnion={handleUnion}
           onIntersection={handleIntersection}
-          onDelete={handleDelete}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
         />
       )}
     </div>

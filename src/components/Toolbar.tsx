@@ -10,9 +10,21 @@ interface MapToolbarProps {
   booleanOperationsAvailable: boolean;
   onUnion?: () => void;
   onIntersection?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
-export function Toolbar({ booleanOperationsAvailable, onUnion, onIntersection }: MapToolbarProps) {
+export function Toolbar({
+  booleanOperationsAvailable,
+  onUnion,
+  onIntersection,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
+}: MapToolbarProps) {
   const tools: ToolbarAction[] = [
     {
       id: 'union',
@@ -27,6 +39,20 @@ export function Toolbar({ booleanOperationsAvailable, onUnion, onIntersection }:
       tooltip: 'Intersect',
       action: () => onIntersection?.(),
       isEnabled: () => booleanOperationsAvailable,
+    },
+    {
+      id: 'undo',
+      label: 'Undo',
+      tooltip: 'Unsdo',
+      action: () => onUndo?.(),
+      isEnabled: () => canUndo,
+    },
+    {
+      id: 'redo',
+      label: 'Redo',
+      tooltip: 'Redo',
+      action: () => onRedo?.(),
+      isEnabled: () => canRedo,
     },
   ];
 
