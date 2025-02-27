@@ -43,12 +43,12 @@ export function ActiveSolutionProvider({ children }: { children: React.ReactNode
       solutionReducer(draft, action),
     );
 
-    // Only update if there were actual changes
+    // only update if there were actual changes
     if (patches.length > 0) {
       updateSolution(activeSolution.id, nextState);
 
       if (undoable) {
-        // Truncate the redo history when a new action is performed
+        // truncate the redo history when a new action is performed
         undoStack.current = undoStack.current.slice(0, undoPointer.current + 1);
         undoStack.current.push({ patches, inversePatches });
         undoPointer.current++;
