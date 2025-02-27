@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import type { Solution } from '@/types/types';
 import { useSolutionList } from '@/contexts/SolutionListContext';
 import { solutionReducer, SolutionAction } from '@/reducers/solutionReducer';
-import { produceWithPatches, Patch, enablePatches } from 'immer';
+import { produceWithPatches, Patch, enablePatches, applyPatches } from 'immer';
+import { useUndoRedo } from '../hooks/useUndoRedo';
 
 enablePatches();
 
@@ -22,9 +23,9 @@ interface ActiveSolutionContextType {
   setSelectedFeatureIndices: (indices: Set<number> | ((prev: Set<number>) => Set<number>)) => void;
 }
 
-const ActiveSolutionContext = createContext<ActiveSolutionContextType | undefined>(undefined);
+export const ActiveSolutionContext = createContext<ActiveSolutionContextType | undefined>(undefined);
 
-export function ActiveSolutionProvider({ children }: { children: React.ReactNode }) {
+export const ActiveSolutionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { solutions = [], activeSolutionId, updateSolution } = useSolutionList();
   const [selectedFeatureIndices, setSelectedFeatureIndices] = useState<Set<number>>(new Set());
 
@@ -35,53 +36,58 @@ export function ActiveSolutionProvider({ children }: { children: React.ReactNode
   const activeSolution =
     solutions && Array.isArray(solutions) ? solutions.find((w) => w.id === activeSolutionId) || null : null;
 
+  // Use our new hook instead of managing undo/redo directly
+  const { addToHistory, undo: undoHistory, redo: redoHistory, canUndo, canRedo } = useUndoRedo();
+
   // Custom dispatch that handles history and updates the parent context
-  const dispatch = (action: SolutionAction, undoable = true) => {
-    if (!activeSolution) return;
+  const dispatch = useCallback(
+    (action: SolutionAction, undoable = true) => {
+      if (!activeSolution) return;
 
-    const [nextState, patches, inversePatches] = produceWithPatches(activeSolution, (draft) =>
-      solutionReducer(draft, action),
-    );
+      const [nextState, patches, inversePatches] = produceWithPatches(activeSolution, (draft) =>
+        solutionReducer(draft, action),
+      );
 
-    // only update if there were actual changes
-    if (patches.length > 0) {
-      updateSolution(activeSolution.id, nextState);
+      // only update if there were actual changes
+      if (patches.length > 0) {
+        updateSolution(activeSolution.id, nextState);
 
-      if (undoable) {
-        // truncate the redo history when a new action is performed
-        undoStack.current = undoStack.current.slice(0, undoPointer.current + 1);
-        undoStack.current.push({ patches, inversePatches });
-        undoPointer.current++;
+        if (undoable) {
+          // Add to history using our hook
+          addToHistory({ patches, inversePatches });
+        }
       }
+    },
+    [activeSolution, updateSolution, addToHistory],
+  );
+
+  // Undo the last action
+  const undo = useCallback(() => {
+    if (!activeSolution || !canUndo) return;
+
+    const entry = undoHistory();
+    if (entry) {
+      const nextState = applyPatches(activeSolution, entry.inversePatches);
+      updateSolution(activeSolution.id, nextState);
     }
-  };
+  }, [activeSolution, updateSolution, undoHistory, canUndo]);
 
-  const undo = () => {
-    if (!activeSolution || undoPointer.current < 0) return;
+  // Redo the previously undone action
+  const redo = useCallback(() => {
+    if (!activeSolution || !canRedo) return;
 
-    const patches = undoStack.current[undoPointer.current].inversePatches;
-    undoPointer.current--;
-
-    dispatch({ type: 'APPLY_PATCHES', patches }, false);
-  };
-
-  const redo = () => {
-    if (!activeSolution || undoPointer.current >= undoStack.current.length - 1) return;
-
-    undoPointer.current++;
-    const patches = undoStack.current[undoPointer.current].patches;
-
-    dispatch({ type: 'APPLY_PATCHES', patches }, false);
-  };
+    const entry = redoHistory();
+    if (entry) {
+      const nextState = applyPatches(activeSolution, entry.patches);
+      updateSolution(activeSolution.id, nextState);
+    }
+  }, [activeSolution, updateSolution, redoHistory, canRedo]);
 
   // Reset history when active solution changes
   useEffect(() => {
     undoStack.current = [];
     undoPointer.current = -1;
   }, [activeSolutionId]);
-
-  const canUndo = undoPointer.current >= 0;
-  const canRedo = undoPointer.current < undoStack.current.length - 1;
 
   return (
     <ActiveSolutionContext.Provider
@@ -99,7 +105,7 @@ export function ActiveSolutionProvider({ children }: { children: React.ReactNode
       {children}
     </ActiveSolutionContext.Provider>
   );
-}
+};
 
 export function useActiveSolution() {
   const context = useContext(ActiveSolutionContext);
